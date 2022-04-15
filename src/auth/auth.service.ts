@@ -37,6 +37,9 @@ export class AuthService {
 
     private async validateUser (userDto: CreateUserDto) {
        const user = await this.usersService.getUserByEmail(userDto.email)
+        if(!user){
+            throw new HttpException('Wrong email or password', HttpStatus.BAD_REQUEST)
+        }
         const isEqualPass = await bcrypt.compare(userDto.password, user.password)
 
         if(user && isEqualPass){
@@ -49,7 +52,7 @@ export class AuthService {
             }
         }
 
-        throw new UnauthorizedException('Wrong email or password')
+        throw new HttpException('Wrong email or password', HttpStatus.BAD_REQUEST)
     }
 
 }
