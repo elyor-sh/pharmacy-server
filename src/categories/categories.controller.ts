@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Param, Post, Put, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards} from '@nestjs/common';
 import {ApiBearerAuth, ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
 import {CategoriesService} from "./categories.service";
 import {Roles} from "../auth/roles-auth.decorator";
@@ -29,8 +29,8 @@ export class CategoriesController {
     @Roles('ADMIN')
     @UseGuards(RolesGuard)
     @Get()
-    getAll(){
-        return this.categoriesService.getAll()
+    getAll(@Query() query){
+        return this.categoriesService.getAll(query)
     }
 
     @ApiOperation({summary: 'Get one category'})
