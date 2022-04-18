@@ -7,6 +7,10 @@ import {User} from "./users/users.model";
 import {RolesModule} from './roles/roles.module';
 import {Role} from "./roles/roles.model";
 import {CategoriesModule} from './categories/categories.module';
+import { MedicinesModule } from './medicines/medicines.module';
+import {Categories} from './categories/categories.model'
+import {Medicines} from './medicines/medicines.model'
+import { FilesModule } from './files/files.module';
 
 
 @Module({
@@ -21,7 +25,7 @@ import {CategoriesModule} from './categories/categories.module';
             username: process.env.POSTGRES_USER,
             password: process.env.POSTGRES_PASSWORD,
             database: process.env.POSTGRES_DB,
-            models: [User, Role],
+            models: [User, Role, Categories, Medicines],
             autoLoadModels: true,
             ssl: process.env.SSL_DB_CONNECTION !== 'false',
             dialectOptions: {
@@ -35,6 +39,8 @@ import {CategoriesModule} from './categories/categories.module';
         UsersModule,
         RolesModule,
         CategoriesModule,
+        MedicinesModule,
+        FilesModule,
     ]
 })
 export class AppModule {

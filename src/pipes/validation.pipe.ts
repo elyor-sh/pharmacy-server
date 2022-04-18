@@ -7,6 +7,7 @@ import {ValidationException} from "../exceptions/validation.exception";
 export class ValidationPipe implements PipeTransform<any> {
     async transform(value: any, metadata: ArgumentMetadata): Promise<any> {
         const obj = plainToClass(metadata.metatype, value)
+        console.log(obj)
         const errors = await validate(obj)
 
         if(errors.length){
