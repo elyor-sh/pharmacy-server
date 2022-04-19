@@ -22,7 +22,10 @@ export class MedicinesService {
 
         const medicine = await this.medicineRepository.create({...dto, image: fileName})
 
-        return medicine
+        return {
+            items: medicine,
+            message: `Dori muvaffaqqiyatli qo'shildi!`
+        }
     }
 
     async getAll(query) {
@@ -44,11 +47,10 @@ export class MedicinesService {
         const medicinesWithLimit = await this.medicineRepository.findAll(options)
         const medicines = await this.medicineRepository.findAll()
 
-        const obj = {
+        return {
             items: medicinesWithLimit,
             count: medicines.length
         }
-        return obj
     }
 
     async getOne(id: number) {
@@ -57,7 +59,10 @@ export class MedicinesService {
             return new HttpException('Ushbu id ga ega dori topilmadi!', HttpStatus.BAD_REQUEST)
         }
 
-        return medicine
+        return {
+            items: medicine,
+            message: `Successfully!`
+        }
     }
 
     async update(dto: EditMedicineDto, image) {
@@ -113,7 +118,10 @@ export class MedicinesService {
 
         await this.medicineRepository.destroy({where: {id: id}})
 
-        return medicine
+        return {
+            items: medicine,
+            message: `Dori muvaffaqqiyatli o'chirildi!`
+        }
 
     }
 

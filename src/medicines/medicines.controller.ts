@@ -10,7 +10,7 @@ import {
     UsePipes
 } from '@nestjs/common';
 import {MedicinesService} from "./medicines.service";
-import {ApiOperation, ApiResponse} from "@nestjs/swagger";
+import {ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
 import {Roles} from "../auth/roles-auth.decorator";
 import {RolesGuard} from "../auth/roles.guard";
 import {ValidationPipe} from "../pipes/validation.pipe";
@@ -19,6 +19,7 @@ import {CreateMedicineDto} from "./dto/create-medicine.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
 
+@ApiTags('Medicines')
 @Controller('medicines')
 export class MedicinesController {
 
@@ -35,7 +36,7 @@ export class MedicinesController {
         return this.medicinesService.create(dto, image)
     }
 
-    @ApiOperation({summary: 'Create medicine'})
+    @ApiOperation({summary: 'Edit medicine'})
     @ApiResponse({status: 200, type: Medicines})
     @Roles('admin', 'manager')
     @UseGuards(RolesGuard)
@@ -46,7 +47,7 @@ export class MedicinesController {
         return this.medicinesService.update(dto, image)
     }
 
-    @ApiOperation({summary: 'Create medicine'})
+    @ApiOperation({summary: 'Get all medicines'})
     @ApiResponse({status: 200, type: Medicines})
     @Roles('admin', 'manager')
     @UseGuards(RolesGuard)
@@ -55,7 +56,7 @@ export class MedicinesController {
         return this.medicinesService.getAll(query)
     }
 
-    @ApiOperation({summary: 'Create medicine'})
+    @ApiOperation({summary: 'Get one medicine'})
     @ApiResponse({status: 200, type: Medicines})
     @Roles('admin', 'manager')
     @UseGuards(RolesGuard)
@@ -64,6 +65,7 @@ export class MedicinesController {
         return this.medicinesService.getOne(id)
     }
 
+    @ApiOperation({summary: 'Delete medicine'})
     @ApiResponse({status: 200, type: Medicines})
     @Roles('admin', 'manager')
     @UseGuards(RolesGuard)
