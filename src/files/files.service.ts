@@ -11,11 +11,14 @@ export class FilesService {
     async createFile (file: any): Promise<string> {
         try {
 
+            if(!file){
+                return ''
+            }
+
             if(file.size > 20 * 1000000){
                 throw new HttpException(`Fayl hajmi 20 MB dan kam bo'lishi kerak`, HttpStatus.BAD_REQUEST)
             }
 
-            console.log(this.filepath)
 
             if(!fs.existsSync(this.filepath)){
                 fs.mkdirSync(this.filepath, {recursive: true})
