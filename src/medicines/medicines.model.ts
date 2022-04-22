@@ -1,7 +1,7 @@
-import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {ApiProperty} from "@nestjs/swagger";
-import {Role} from "../roles/roles.model";
 import {Categories} from "../categories/categories.model";
+import {Orders} from "../orders/order.model";
 
 interface MedicinesCreationAttrs {
     name: string
@@ -58,4 +58,8 @@ export class Medicines extends Model<Medicines, MedicinesCreationAttrs> {
     categoryId: number
     @BelongsTo(() => Categories)
     category: Categories
+
+    // @HasMany(() => Orders)
+    // orders: Orders[]
+
 }

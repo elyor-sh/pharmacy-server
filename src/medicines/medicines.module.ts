@@ -7,12 +7,13 @@ import {Medicines} from "./medicines.model";
 import {RolesModule} from "../roles/roles.module";
 import {AuthModule} from "../auth/auth.module";
 import {FilesModule} from "../files/files.module";
+import {Orders} from "../orders/order.model";
 
 @Module({
   controllers: [MedicinesController],
   providers: [MedicinesService],
   imports: [
-    SequelizeModule.forFeature([Categories, Medicines]),
+    SequelizeModule.forFeature([Categories, Medicines, Orders]),
     RolesModule,
     forwardRef(() =>  AuthModule),
       FilesModule

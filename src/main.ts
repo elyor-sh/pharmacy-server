@@ -5,19 +5,6 @@ import {JwtAuthGuard} from "./auth/jwt-auth.guard";
 import {ValidationPipe} from "./pipes/validation.pipe";
 import {JwtService} from "@nestjs/jwt";
 
-function name () {
-  var childProcess = require("child_process");
-  var oldSpawn = childProcess.spawn;
-  function mySpawn() {
-    console.log('spawn called');
-    console.log(arguments);
-    var result = oldSpawn.apply(this, arguments);
-    return result;
-  }
-  childProcess.spawn = mySpawn;
-};
-
-name()
 
 const start = async () => {
   try {
@@ -29,6 +16,7 @@ const start = async () => {
         .setDescription(`Documentation for REST API`)
         .setVersion('1.0.0')
         .addTag('Pharmacy api')
+        .addBearerAuth()
         .build()
 
     const document = SwaggerModule.createDocument(app, config)
@@ -36,8 +24,8 @@ const start = async () => {
 
     const reflector = app.get(Reflector);
 
- //   app.useGlobalGuards(new JwtAuthGuard(new JwtService({}), reflector))
-  //  app.useGlobalPipes(new ValidationPipe())
+      app.useGlobalGuards(new JwtAuthGuard(new JwtService({}), reflector))
+      app.useGlobalPipes(new ValidationPipe())
 
     await app.listen(PORT, () => {
       console.log(`Server has been started in port ${PORT}`);

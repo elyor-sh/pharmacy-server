@@ -13,6 +13,7 @@ import {Categories} from './categories/categories.model'
 import {Medicines} from './medicines/medicines.model'
 import { FilesModule } from './files/files.module';
 import {ServeStaticModule} from "@nestjs/serve-static";
+import { OrdersModule } from './orders/orders.module';
 
 
 @Module({
@@ -46,6 +47,7 @@ import {ServeStaticModule} from "@nestjs/serve-static";
         CategoriesModule,
         MedicinesModule,
         FilesModule,
+        OrdersModule,
     ]
 })
 export class AppModule {
