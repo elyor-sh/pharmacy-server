@@ -1,9 +1,9 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
-import {Medicines} from "./medicines.model";
 import {InjectModel} from "@nestjs/sequelize";
 import {CreateMedicineDto} from "./dto/create-medicine.dto";
 import {FilesService} from "../files/files.service";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
+import {Medicines} from "./medicines.model";
 
 @Injectable()
 export class MedicinesService {
@@ -18,9 +18,9 @@ export class MedicinesService {
             return new HttpException(`Bunaqa nomli dori allaqachon bor!`, HttpStatus.BAD_REQUEST)
         }
 
-        const fileName = await this.filesService.createFile(image)
+        const file = await this.filesService.createFile(image)
 
-        const medicine = await this.medicineRepository.create({...dto, image: fileName})
+        const medicine = await this.medicineRepository.create({...dto, image: file.uri, imageId: file.id, resourceType: file.resourceType})
 
         return {
             items: medicine,
@@ -76,10 +76,11 @@ export class MedicinesService {
             return new HttpException('Ushbu id ga ega dori topilmadi!', HttpStatus.BAD_REQUEST)
         }
 
-        let fileName = ''
+        let file: any
 
         if(image){
-            fileName = await this.filesService.updateFile(medicine.image, image)
+            await this.filesService.delete(medicine.imageId, medicine.resourceType)
+            file = await this.filesService.createFile(image)
         }
 
         const newMedicineObj = {
@@ -92,7 +93,9 @@ export class MedicinesService {
             priceWithDiscount: dto.priceWithDiscount ? +dto.priceWithDiscount : medicine.priceWithDiscount,
             currency: dto.currency ? dto.currency : medicine.currency,
             categoryId: dto.categoryId ? dto.categoryId : medicine.categoryId,
-            image: fileName ? fileName : medicine.image
+            image: file.name ? file.name :  medicine.image,
+            imageId: file.id ? file.id : medicine.imageId,
+            resourceType: file.resourceType ? file.resourceType : medicine.resourceType
         }
 
         const newMedicine = await this.medicineRepository.update(newMedicineObj, {
@@ -114,7 +117,7 @@ export class MedicinesService {
             return new HttpException(`Ushbu id ga ega dori topilmadi!`, HttpStatus.BAD_REQUEST)
         }
 
-        await this.filesService.deleteFile(medicine.image)
+        await this.filesService.delete(medicine.imageId, medicine.resourceType)
 
         await this.medicineRepository.destroy({where: {id: id}})
 

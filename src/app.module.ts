@@ -14,6 +14,9 @@ import {Medicines} from './medicines/medicines.model'
 import { FilesModule } from './files/files.module';
 import {ServeStaticModule} from "@nestjs/serve-static";
 import { OrdersModule } from './orders/orders.module';
+import {OrdersMedicine} from "./orders/ordersMedicine";
+import {Orders} from "./orders/order.model";
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 
 @Module({
@@ -31,7 +34,7 @@ import { OrdersModule } from './orders/orders.module';
             username: process.env.POSTGRES_USER,
             password: process.env.POSTGRES_PASSWORD,
             database: process.env.POSTGRES_DB,
-            models: [User, Role, Categories, Medicines],
+            models: [User, Role, Categories, Medicines, OrdersMedicine, Orders],
             autoLoadModels: true,
             ssl: process.env.SSL_DB_CONNECTION !== 'false',
             dialectOptions: {
@@ -48,6 +51,7 @@ import { OrdersModule } from './orders/orders.module';
         MedicinesModule,
         FilesModule,
         OrdersModule,
+        CloudinaryModule,
     ]
 })
 export class AppModule {

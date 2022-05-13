@@ -8,15 +8,19 @@ import {RolesModule} from "../roles/roles.module";
 import {AuthModule} from "../auth/auth.module";
 import {FilesModule} from "../files/files.module";
 import {Orders} from "../orders/order.model";
+import {OrdersMedicine} from "../orders/ordersMedicine";
 
 @Module({
   controllers: [MedicinesController],
   providers: [MedicinesService],
   imports: [
-    SequelizeModule.forFeature([Categories, Medicines, Orders]),
+    SequelizeModule.forFeature([Categories, Medicines, Orders, OrdersMedicine]),
     RolesModule,
     forwardRef(() =>  AuthModule),
       FilesModule
+  ],
+  exports: [
+      MedicinesService,
   ]
 })
 export class MedicinesModule {}

@@ -3,16 +3,38 @@ import {InjectModel} from "@nestjs/sequelize";
 import {Orders} from "./order.model";
 import {CreateOrdersDto} from "./dto/create-orders.dto";
 import {EditOrdersDto} from "./dto/edit-orders.dto";
+import {Medicines} from "../medicines/medicines.model";
+import {Op} from "sequelize";
 
 @Injectable()
 export class OrdersService {
 
-    constructor(@InjectModel(Orders) private ordersRepository: typeof Orders) {}
+    constructor(@InjectModel(Orders) private ordersRepository: typeof Orders, @InjectModel(Medicines) private medicineRepository: typeof Medicines) {}
 
-    async create (dto: CreateOrdersDto) {
-        console.log(dto)
+    async create (dto: CreateOrdersDto): Promise<any> {
+        // console.log(dto)
         try {
-            return this.ordersRepository.create(dto)
+            let order = await this.ordersRepository.create(dto)
+            const medicines = await this.medicineRepository.findAll({
+                where: {
+                    id: {
+                        [Op.or]: dto.medicineId
+                    }
+                }
+            })
+
+           // console.log('Medicines::', medicines)
+
+            await order.$set('medicines',  medicines)
+
+             order.medicines = medicines
+
+            console.log(order)
+
+            return {
+                items: order
+            }
+
         }catch (e) {
             console.log(dto)
             console.log(e)
@@ -35,7 +57,7 @@ export class OrdersService {
                 subQuery: false
             }
 
-        const ordersWithLimit = await this.ordersRepository.findAll(options)
+        const ordersWithLimit = await this.ordersRepository.findAll( {include: {all: true}, ...options})
         const orders = await this.ordersRepository.findAll()
 
         return {

@@ -1,13 +1,16 @@
-import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {ApiProperty} from "@nestjs/swagger";
 import {Categories} from "../categories/categories.model";
 import {Orders} from "../orders/order.model";
+import {OrdersMedicine} from "../orders/ordersMedicine";
 
 interface MedicinesCreationAttrs {
     name: string
     price: number
     description: string
     image: string
+    imageId: string
+    resourceType: string
     totalCount: number
     hasDiscount: boolean
     priceWithDiscount: number
@@ -32,9 +35,17 @@ export class Medicines extends Model<Medicines, MedicinesCreationAttrs> {
     @Column({type: DataType.STRING, defaultValue: ''})
     description: string;
 
-    @ApiProperty({example: 'Image', description: 'Banned user or not'})
+    @ApiProperty({example: 'image', description: 'Any image file'})
     @Column({type: DataType.STRING, defaultValue: ''})
     image: string;
+
+    @ApiProperty({example: 'Image', description: 'id of image'})
+    @Column({type: DataType.STRING, defaultValue: ''})
+    imageId: string;
+
+    @ApiProperty({example: 'image', description: 'Type of resource'})
+    @Column({type: DataType.STRING, defaultValue: ''})
+    resourceType: string;
 
     @ApiProperty({example: 10, description: 'The total amount of the medicine'})
     @Column({type: DataType.INTEGER, defaultValue: 0})
@@ -57,7 +68,11 @@ export class Medicines extends Model<Medicines, MedicinesCreationAttrs> {
     @Column({type: DataType.INTEGER})
     categoryId: number
     @BelongsTo(() => Categories)
-    category: Categories
+    category: Categories;
+
+    @ApiProperty({example: 1, description: 'Orders'})
+    @BelongsToMany(() => Orders, () => OrdersMedicine)
+    orders: Orders[]
 
     // @HasMany(() => Orders)
     // orders: Orders[]

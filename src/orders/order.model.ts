@@ -1,6 +1,7 @@
-import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import {BelongsTo, BelongsToMany, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
 import {ApiProperty} from "@nestjs/swagger";
 import {Medicines} from "../medicines/medicines.model";
+import {OrdersMedicine} from "./ordersMedicine";
 
 type Status  = 'active' | 'canceled' | 'done' | 'frozen'
 
@@ -39,9 +40,13 @@ export class Orders extends Model<Orders, OrdersCreationAttrs> {
     status: string;
 
 
-    @ForeignKey(() => Medicines)
-    @Column({type: DataType.ARRAY(DataType.INTEGER)})
-    medicineId: number[]
+    // @ForeignKey(() => Medicines)
+    // @Column({type: DataType.ARRAY(DataType.INTEGER)})
+    // medicineId: number[]
     // @BelongsTo(() => Medicines)
-    // medicines: Medicines
+    // medicines: Medicines[]
+
+    @ApiProperty({example: 1, description: 'Medicines'})
+    @BelongsToMany(() => Medicines, () => OrdersMedicine)
+    medicines: Medicines[]
 }
