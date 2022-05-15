@@ -5,7 +5,6 @@ import {ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
 import {Role} from "./roles.model";
 import {Roles} from "../auth/roles-auth.decorator";
 import {RolesGuard} from "../auth/roles.guard";
-import {Public} from "../auth/public.decorator";
 
 @ApiTags('Roles')
 @Controller('roles')

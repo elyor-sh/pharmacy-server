@@ -1,7 +1,7 @@
 import {
     Body,
     Controller,
-    Delete, Get,
+    Delete, Get, HttpException, HttpStatus,
     Param,
     Post, Put, Query,
     UploadedFile,
@@ -33,7 +33,12 @@ export class MedicinesController {
     @UseInterceptors(FileInterceptor('image'))
     @Post()
     create(@Body() dto: CreateMedicineDto, @UploadedFile() image){
-        return this.medicinesService.create(dto, image)
+        try {
+            return this.medicinesService.create(dto, image)
+
+        }catch (e) {
+           throw new HttpException(e, e.status || HttpStatus.BAD_REQUEST)
+        }
     }
 
     @ApiOperation({summary: 'Edit medicine'})

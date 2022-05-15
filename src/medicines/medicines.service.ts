@@ -15,7 +15,13 @@ export class MedicinesService {
         const isExist = await this.medicineRepository.findOne({where: {name: dto.name}})
 
         if(isExist){
-            return new HttpException(`Bunaqa nomli dori allaqachon bor!`, HttpStatus.BAD_REQUEST)
+            throw new HttpException(`Bunaqa nomli dori allaqachon bor!`, HttpStatus.BAD_REQUEST)
+        }
+
+        const isExistCategory = await this.medicineRepository.findOne({where: {id: dto.categoryId}})
+
+        if(!isExistCategory){
+           throw new HttpException(`Mavjud bo'lmagan kategoriya`, HttpStatus.BAD_REQUEST)
         }
 
         const file = await this.filesService.createFile(image)
