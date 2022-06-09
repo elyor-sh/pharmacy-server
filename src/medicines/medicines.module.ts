@@ -9,10 +9,11 @@ import {AuthModule} from "../auth/auth.module";
 import {FilesModule} from "../files/files.module";
 import {Orders} from "../orders/order.model";
 import {OrdersMedicine} from "../orders/ordersMedicine";
+import {CategoriesService} from "../categories/categories.service";
 
 @Module({
   controllers: [MedicinesController],
-  providers: [MedicinesService],
+  providers: [MedicinesService, CategoriesService],
   imports: [
     SequelizeModule.forFeature([Categories, Medicines, Orders, OrdersMedicine]),
     RolesModule,

@@ -4,11 +4,16 @@ import {CreateMedicineDto} from "./dto/create-medicine.dto";
 import {FilesService} from "../files/files.service";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
 import {Medicines} from "./medicines.model";
+import {CategoriesService} from "../categories/categories.service";
 
 @Injectable()
 export class MedicinesService {
 
-    constructor(@InjectModel(Medicines) private medicineRepository: typeof Medicines, private filesService: FilesService) {}
+    constructor(
+        @InjectModel(Medicines) private medicineRepository: typeof Medicines,
+        private categoryService: CategoriesService,
+        private filesService: FilesService
+    ) {}
 
     async create (dto: CreateMedicineDto, image:any) {
 
@@ -18,7 +23,9 @@ export class MedicinesService {
             throw new HttpException(`Bunaqa nomli dori allaqachon bor!`, HttpStatus.BAD_REQUEST)
         }
 
-        const isExistCategory = await this.medicineRepository.findOne({where: {id: dto.categoryId}})
+        const isExistCategory = await this.categoryService.getOne(+dto.categoryId)
+
+        console.log(dto, isExistCategory)
 
         if(!isExistCategory){
            throw new HttpException(`Mavjud bo'lmagan kategoriya`, HttpStatus.BAD_REQUEST)
@@ -132,6 +139,11 @@ export class MedicinesService {
             message: `Dori muvaffaqqiyatli o'chirildi!`
         }
 
+    }
+
+    async getByQuery (query: any) {
+
+        return this.medicineRepository.findAll(query)
     }
 
 }
