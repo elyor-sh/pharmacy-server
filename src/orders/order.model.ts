@@ -40,9 +40,9 @@ export class Orders extends Model<Orders, OrdersCreationAttrs> {
     status: string;
 
 
-    // @ForeignKey(() => Medicines)
-    // @Column({type: DataType.ARRAY(DataType.INTEGER)})
-    // medicineId: number[]
+    @ForeignKey(() => Medicines)
+     @Column({type: DataType.ARRAY(DataType.INTEGER)})
+     medicineId: number[]
     // @BelongsTo(() => Medicines)
     // medicines: Medicines[]
 
