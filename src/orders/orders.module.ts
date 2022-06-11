@@ -5,6 +5,7 @@ import {SequelizeModule} from "@nestjs/sequelize";
 import {Medicines} from "../medicines/medicines.model";
 import {Orders} from "./order.model";
 import {OrdersMedicine} from "./ordersMedicine";
+import {MedicinesModule} from "../medicines/medicines.module";
 
 
 @Module({
@@ -12,6 +13,7 @@ import {OrdersMedicine} from "./ordersMedicine";
   providers: [OrdersService],
   imports: [
     SequelizeModule.forFeature([ Orders, OrdersMedicine, Medicines]),
+      MedicinesModule
   ]
 })
 export class OrdersModule {}

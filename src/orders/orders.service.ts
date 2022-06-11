@@ -3,37 +3,47 @@ import {InjectModel} from "@nestjs/sequelize";
 import {Orders} from "./order.model";
 import {CreateOrdersDto} from "./dto/create-orders.dto";
 import {EditOrdersDto} from "./dto/edit-orders.dto";
-import {Medicines} from "../medicines/medicines.model";
 import {Op} from "sequelize";
+import {MedicinesService} from "../medicines/medicines.service";
+import {getResponse} from "../utils/response-util";
 
 @Injectable()
 export class OrdersService {
 
-    constructor(@InjectModel(Orders) private ordersRepository: typeof Orders, @InjectModel(Medicines) private medicineRepository: typeof Medicines) {}
+    constructor(
+        @InjectModel(Orders) private ordersRepository: typeof Orders,
+        private medicineService: MedicinesService,
+        ) {}
 
     async create (dto: CreateOrdersDto): Promise<any> {
-        // console.log(dto)
+
         try {
-            let order = await this.ordersRepository.create(dto)
-            const medicines = await this.medicineRepository.findAll({
-                where: {
-                    id: {
-                        [Op.or]: dto.medicineId
+
+            const medicines = await this.medicineService.getByQuery({
+                    where: {
+                        id: {
+                            [Op.and]: dto.medicineId
+                        }
                     }
-                }
+                })
+
+            if(!medicines.length){
+                throw new HttpException('Kategoriyalar topilmadi!', HttpStatus.BAD_REQUEST)
+            }
+
+           let totalPrice = 0
+
+            medicines.forEach(item => {
+                totalPrice += item.price
             })
 
-           // console.log('Medicines::', medicines)
+            let order = await this.ordersRepository.create({...dto, totalPrice})
 
             await order.$set('medicines',  medicines)
 
-             order.medicines = medicines
+            order.medicines = medicines
 
-            console.log(order)
-
-            return {
-                items: order
-            }
+            return getResponse(order, 'Success', {count: null})
 
         }catch (e) {
             console.log(dto)

@@ -16,8 +16,7 @@ export class CategoriesService {
             return new HttpException('Bunaqa nomli kategoriya allaqachon bor', HttpStatus.BAD_REQUEST)
         }
 
-        const category = await this.categoriesRepository.create(categoryDto)
-        return category
+        return this.categoriesRepository.create(categoryDto)
     }
 
     async getAll(query) {
@@ -39,11 +38,10 @@ export class CategoriesService {
         const categoriesWithLimit = await this.categoriesRepository.findAll(options)
         const categories = await this.categoriesRepository.findAll()
 
-        const obj = {
+        return {
             items: categoriesWithLimit,
             count: categories.length
         }
-        return obj
     }
 
     async getOne(id: number) {
@@ -74,7 +72,6 @@ export class CategoriesService {
     }
 
     async delete(id: number) {
-        const deletedCategory = await this.categoriesRepository.destroy({where: {id: id}})
-        return deletedCategory
+        return this.categoriesRepository.destroy({where: {id: id}})
     }
 }

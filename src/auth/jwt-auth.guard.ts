@@ -41,6 +41,8 @@ export class JwtAuthGuard implements CanActivate {
                 throw new UnauthorizedException({message: 'Foydalanuvchi saytda login qilmagan'})
             }
 
+            console.log(token)
+
             const user = this.jwtService.verify(token, {
                 secret: process.env.SECRET_JWT_KEY || 'SECRET_KEY'
             })

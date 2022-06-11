@@ -1,7 +1,6 @@
-import {BelongsTo, BelongsToMany, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import { Column, DataType, Model, Table} from "sequelize-typescript";
 import {ApiProperty} from "@nestjs/swagger";
 import {Medicines} from "../medicines/medicines.model";
-import {OrdersMedicine} from "./ordersMedicine";
 
 type Status  = 'active' | 'canceled' | 'done' | 'frozen'
 
@@ -11,6 +10,7 @@ interface OrdersCreationAttrs {
     phoneNumber: string
     fullName: string
     status: Status
+    totalPrice: number
 }
 
 @Table({tableName: 'orders'})
@@ -39,14 +39,11 @@ export class Orders extends Model<Orders, OrdersCreationAttrs> {
     @Column({type: DataType.STRING, defaultValue: 'active'})
     status: string;
 
-
-    @ForeignKey(() => Medicines)
-     @Column({type: DataType.ARRAY(DataType.INTEGER)})
-     medicineId: number[]
-    // @BelongsTo(() => Medicines)
-    // medicines: Medicines[]
+    @ApiProperty({example: 120000, description: 'Total price of order'})
+    @Column({type: DataType.FLOAT, allowNull: false})
+    totalPrice: number;
 
     @ApiProperty({example: 1, description: 'Medicines'})
-    @BelongsToMany(() => Medicines, () => OrdersMedicine)
+    @Column({type: DataType.ARRAY(DataType.INTEGER), allowNull: false})
     medicines: Medicines[]
 }

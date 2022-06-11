@@ -17,7 +17,7 @@ export class CreateOrdersDto {
     readonly text: string
 
     @ApiProperty({example: 'Niyazov Mirkomil Abdullayevich', description: `Fullname of customer`})
-    @IsString( {message: `Foydalanubchi ismi, sharifi familiyasi text bo'lishi kerak`})
+    @IsString( {message: `Foydalanuvchi ismi, sharifi familiyasi text bo'lishi kerak`})
     readonly fullName: string
 
     @ApiProperty({example: 1, description: `id of Medicine`})
