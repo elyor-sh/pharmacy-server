@@ -16,35 +16,38 @@ export class OrdersService {
         @InjectModel(Orders) private ordersRepository: typeof Orders,
         @InjectModel(Basket) private basketRepository: typeof Basket,
         private medicineService: MedicinesService,
-        ) {}
+    ) {
+    }
 
-    async create (dto: CreateOrdersDto[], userId: number): Promise<any> {
+    async create(dto: CreateOrdersDto[], userId: number): Promise<any> {
 
         try {
 
             const medicineIds = dto.map(item => item.medicineId)
 
             const medicines = await this.medicineService.getByQuery({
-                    where: {
-                        id: {
-                            [Op.and]: medicineIds
-                        }
+                where: {
+                    id: {
+                        [Op.and]: medicineIds
                     }
-                })
+                }
+            })
 
-            if(!medicines){
-               throw new HttpException(`Dorilar topilmadi`, HttpStatus.BAD_REQUEST)
+            if (!medicines) {
+                throw new HttpException(`Dorilar topilmadi`, HttpStatus.BAD_REQUEST)
             }
 
-            let totalPrice =  this.getTotalPrice(medicines, dto)
+            await this.updateMedicinesCount(medicines, dto)
 
-           const order = await this.ordersRepository.create({
+            let totalPrice = this.getTotalPrice(medicines, dto)
+
+            const order = await this.ordersRepository.create({
                 userId,
                 status: 'active',
                 totalPrice
             })
 
-            let basketsArray = this.getBasketsArray(medicines, dto, order)
+            let basketsArray = this.getBasketsArrayAndCount(medicines, dto, order)
 
             const baskets = await this.basketRepository.bulkCreate(basketsArray, {returning: true})
 
@@ -58,13 +61,13 @@ export class OrdersService {
 
             return getResponse({order, baskets}, 'success', null)
 
-        }catch (e) {
+        } catch (e) {
             console.log('error', e)
             throw new Error(e)
         }
     }
 
-    async getAll (query) {
+    async getAll(query) {
         const options = query.rowsPerPage
             ?
             {
@@ -79,7 +82,7 @@ export class OrdersService {
                 subQuery: false
             }
 
-        const ordersWithLimit = await this.ordersRepository.findAll( {include: {all: true}, ...options})
+        const ordersWithLimit = await this.ordersRepository.findAll({include: {all: true}, ...options})
         const orders = await this.ordersRepository.findAll()
 
         return {
@@ -89,10 +92,10 @@ export class OrdersService {
         }
     }
 
-    async getOne (id: number) {
+    async getOne(id: number) {
         const order = await this.ordersRepository.findByPk(id)
 
-        if(!order){
+        if (!order) {
             throw new HttpException(`Ushbu id li buyurtma topilmadi!`, HttpStatus.BAD_REQUEST)
         }
 
@@ -102,7 +105,7 @@ export class OrdersService {
         }
     }
 
-    async update (dto: EditOrdersDto) {
+    async update(dto: EditOrdersDto) {
         const order = await this.ordersRepository.findByPk(dto.id)
         if (!order) {
             return new HttpException('Kategoriya topilmadi', HttpStatus.BAD_REQUEST)
@@ -120,15 +123,17 @@ export class OrdersService {
         return newOrder[1][0]
     }
 
-    async delete (id: number){
+    async delete(id: number) {
 
         const order = await this.ordersRepository.findByPk(id)
 
-        if(!order){
+        if (!order) {
             throw new HttpException(`Ushbu id li buyurtma topilmadi!`, HttpStatus.BAD_REQUEST)
         }
 
         await this.ordersRepository.destroy({where: {id: id}})
+
+        await this.basketRepository.destroy({where: {orderId: id}})
 
         return {
             items: order,
@@ -136,12 +141,33 @@ export class OrdersService {
         }
     }
 
-    private getTotalPrice (medicines: Medicines[], dto: CreateOrdersDto[]): number {
+    private async updateMedicinesCount (medicines: Medicines[], dto: CreateOrdersDto[]) {
+        try {
+
+            medicines.forEach(item => {
+               dto.forEach(d => {
+
+                   if(item.totalCount - d.count < 1){
+                       throw new HttpException(`Dostavkalardagi ko'rsatilgan dorilar soni tovar sonidan ko'p`, HttpStatus.BAD_REQUEST)
+                   };
+
+                   (async () => {
+                       await this.medicineService.update({id: item.id, totalCount: item.totalCount - d.count}, null)
+                   })();
+               })
+            })
+
+        }catch (e) {
+            throw new Error(e)
+        }
+    }
+
+    private getTotalPrice(medicines: Medicines[], dto: CreateOrdersDto[]): number {
         let totalPrice = 0
 
         medicines.forEach((medicine) => {
             dto.forEach(item => {
-                if(item.medicineId === medicine.id){
+                if (item.medicineId === medicine.id) {
                     totalPrice = totalPrice + (medicine.price * item.count)
                 }
             })
@@ -150,13 +176,13 @@ export class OrdersService {
         return totalPrice
     }
 
-    private getBasketsArray (medicines: Medicines[], dto: CreateOrdersDto[], order: Orders): any[] {
+    private getBasketsArrayAndCount(medicines: Medicines[], dto: CreateOrdersDto[], order: Orders) {
 
         let basketsArray: any[] = []
 
         medicines.forEach((medicine) => {
             dto.forEach(item => {
-                if(item.medicineId === medicine.id){
+                if (item.medicineId === medicine.id) {
 
                     const obj = {
                         medicineId: item.medicineId,
@@ -170,7 +196,7 @@ export class OrdersService {
             })
         })
 
-        return  basketsArray
+        return basketsArray
 
-}
+    }
 }

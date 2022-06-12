@@ -6,27 +6,27 @@ export class EditMedicineDto{
     readonly id: number
 
     @ApiProperty({example: 'Aristada', description: 'Name of medicine'})
-    readonly name: string
+    readonly name?: string
 
     @ApiProperty({example: 100000, description: 'Price of medicine'})
-    readonly price: number
+    readonly price?: number
 
     @ApiProperty({example: 'Headache medicine', description: 'Description of medicine'})
-    readonly description: string
+    readonly description?: string
 
     @ApiProperty({example: 10, description: 'The total amount of the medicine'})
-    readonly totalCount: number
+    readonly totalCount?: number
 
     @ApiProperty({example: true, description: 'Is there a discount for this medicine or not'})
-    readonly hasDiscount: boolean
+    readonly hasDiscount?: boolean
 
     @ApiProperty({example: 10, description: 'Price of medicine with discount'})
-    readonly priceWithDiscount: number
+    readonly priceWithDiscount?: number
 
     @ApiProperty({example: 'UZS', description: 'Currency'})
-    readonly currency: string
+    readonly currency?: string
 
     @ApiProperty({example: 1, description: 'Category id'})
-    readonly categoryId: number
+    readonly categoryId?: number
 
 }
