@@ -1,54 +1,66 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/sequelize";
-import {Orders} from "./order.model";
+import {Orders} from "./orders.model";
 import {CreateOrdersDto} from "./dto/create-orders.dto";
 import {EditOrdersDto} from "./dto/edit-orders.dto";
 import {Op} from "sequelize";
 import {MedicinesService} from "../medicines/medicines.service";
 import {getResponse} from "../utils/response-util";
+import {Basket} from "./basket.model";
+import {Medicines} from "../medicines/medicines.model";
 
 @Injectable()
 export class OrdersService {
 
     constructor(
         @InjectModel(Orders) private ordersRepository: typeof Orders,
+        @InjectModel(Basket) private basketRepository: typeof Basket,
         private medicineService: MedicinesService,
         ) {}
 
-    async create (dto: CreateOrdersDto): Promise<any> {
+    async create (dto: CreateOrdersDto[], userId: number): Promise<any> {
 
         try {
+
+            const medicineIds = dto.map(item => item.medicineId)
 
             const medicines = await this.medicineService.getByQuery({
                     where: {
                         id: {
-                            [Op.and]: dto.medicineId
+                            [Op.and]: medicineIds
                         }
                     }
                 })
 
-            if(!medicines.length){
-                throw new HttpException('Kategoriyalar topilmadi!', HttpStatus.BAD_REQUEST)
+            if(!medicines){
+               throw new HttpException(`Dorilar topilmadi`, HttpStatus.BAD_REQUEST)
             }
 
-           let totalPrice = 0
+            let totalPrice =  this.getTotalPrice(medicines, dto)
 
-            medicines.forEach(item => {
+           const order = await this.ordersRepository.create({
+                userId,
+                status: 'active',
+                totalPrice
+            })
+
+            let basketsArray = this.getBasketsArray(medicines, dto, order)
+
+            const baskets = await this.basketRepository.bulkCreate(basketsArray, {returning: true})
+
+            baskets.forEach(item => {
                 totalPrice += item.price
             })
 
-            let order = await this.ordersRepository.create({...dto, totalPrice})
+            await order.$set('baskets', baskets)
 
-            await order.$set('medicines',  medicines)
+            order.baskets = baskets
 
-            order.medicines = medicines
-
-            return getResponse(order, 'Success', {count: null})
+            return getResponse({order, baskets}, 'success', null)
 
         }catch (e) {
-            console.log(dto)
-            console.log(e)
-            throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+            console.log('error', e)
+            throw new Error(e)
         }
     }
 
@@ -123,4 +135,42 @@ export class OrdersService {
             message: `Buyurtma muvaffaqqiyatli o'chirildi`
         }
     }
+
+    private getTotalPrice (medicines: Medicines[], dto: CreateOrdersDto[]): number {
+        let totalPrice = 0
+
+        medicines.forEach((medicine) => {
+            dto.forEach(item => {
+                if(item.medicineId === medicine.id){
+                    totalPrice = totalPrice + (medicine.price * item.count)
+                }
+            })
+        })
+
+        return totalPrice
+    }
+
+    private getBasketsArray (medicines: Medicines[], dto: CreateOrdersDto[], order: Orders): any[] {
+
+        let basketsArray: any[] = []
+
+        medicines.forEach((medicine) => {
+            dto.forEach(item => {
+                if(item.medicineId === medicine.id){
+
+                    const obj = {
+                        medicineId: item.medicineId,
+                        count: item.count,
+                        price: medicine.price * item.count,
+                        orderId: order.id
+                    }
+
+                    basketsArray.push(obj)
+                }
+            })
+        })
+
+        return  basketsArray
+
+}
 }

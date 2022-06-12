@@ -2,9 +2,11 @@ import {Body, Controller, Delete, Get, Param, Post, Put, Query, UsePipes} from '
 import {ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
 import {OrdersService} from "./orders.service";
 import {ValidationPipe} from "../pipes/validation.pipe";
-import {Orders} from "./order.model";
+import {Orders} from "./orders.model";
 import {CreateOrdersDto} from "./dto/create-orders.dto";
 import {EditOrdersDto} from "./dto/edit-orders.dto";
+import {UserDecorator} from "../users/users.decorator";
+import {User} from "../users/users.model";
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -16,8 +18,9 @@ export class OrdersController {
     @ApiResponse({status: 200, type: Orders})
     @UsePipes(ValidationPipe)
     @Post()
-    create(@Body() dto: CreateOrdersDto){
-        return this.ordersService.create(dto)
+    create(@UserDecorator() user: User, @Body() dto: CreateOrdersDto[]){
+
+        return this.ordersService.create(dto, user.id)
     }
 
     @ApiOperation({summary: 'Get all orders'})

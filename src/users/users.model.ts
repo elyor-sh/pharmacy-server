@@ -1,6 +1,8 @@
-import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {ApiProperty} from "@nestjs/swagger";
 import {Role} from "../roles/roles.model";
+import {Basket} from "../orders/basket.model";
+import {Orders} from "../orders/orders.model";
 
 interface UserCreationAttrs {
     email: string
@@ -30,13 +32,17 @@ export class User extends Model<User, UserCreationAttrs> {
     @Column({type: DataType.BOOLEAN, defaultValue: false})
     banned: boolean;
 
-    @ApiProperty({example: 'Banned for bad content', description: 'Reason of ban'})
+    @ApiProperty({example: 'Banned for bad character', description: 'Reason of ban'})
     @Column({type: DataType.STRING, allowNull: true})
     banReason: string;
 
     @ForeignKey(() => Role)
     @Column({type: DataType.INTEGER})
     roleId: number
+
     @BelongsTo(() => Role)
     roles: Role
+
+    @HasMany(() => Orders)
+    orders: Orders;
 }

@@ -12,8 +12,8 @@ import {Categories} from './categories/categories.model'
 import {Medicines} from './medicines/medicines.model'
 import { FilesModule } from './files/files.module';
 import { OrdersModule } from './orders/orders.module';
-import {OrdersMedicine} from "./orders/ordersMedicine";
-import {Orders} from "./orders/order.model";
+import {Basket} from "./orders/basket.model";
+import {Orders} from "./orders/orders.model";
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 
@@ -29,7 +29,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
             username: process.env.POSTGRES_USER,
             password: process.env.POSTGRES_PASSWORD,
             database: process.env.POSTGRES_DB,
-            models: [User, Role, Categories, Medicines, OrdersMedicine, Orders],
+            models: [User, Role, Categories, Medicines, Basket, Orders],
             autoLoadModels: true,
             ssl: process.env.SSL_DB_CONNECTION !== 'false',
             dialectOptions: {

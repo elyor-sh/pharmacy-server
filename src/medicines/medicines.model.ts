@@ -1,8 +1,8 @@
 import {BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {ApiProperty} from "@nestjs/swagger";
 import {Categories} from "../categories/categories.model";
-import {Orders} from "../orders/order.model";
-import {OrdersMedicine} from "../orders/ordersMedicine";
+import {Basket} from "../orders/basket.model";
+
 
 interface MedicinesCreationAttrs {
     name: string
@@ -67,14 +67,11 @@ export class Medicines extends Model<Medicines, MedicinesCreationAttrs> {
     @ForeignKey(() => Categories)
     @Column({type: DataType.INTEGER})
     categoryId: number
+
     @BelongsTo(() => Categories)
     category: Categories;
 
-    @ApiProperty({example: 1, description: 'Orders'})
-    @BelongsToMany(() => Orders, () => OrdersMedicine)
-    orders: Orders[]
-
-    // @HasMany(() => Orders)
-    // orders: Orders[]
+    @HasMany(() => Basket)
+    baskets: Basket;
 
 }

@@ -3,8 +3,8 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import {SequelizeModule} from "@nestjs/sequelize";
 import {Medicines} from "../medicines/medicines.model";
-import {Orders} from "./order.model";
-import {OrdersMedicine} from "./ordersMedicine";
+import {Orders} from "./orders.model";
+import {Basket} from "./basket.model";
 import {MedicinesModule} from "../medicines/medicines.module";
 
 
@@ -12,7 +12,7 @@ import {MedicinesModule} from "../medicines/medicines.module";
   controllers: [OrdersController],
   providers: [OrdersService],
   imports: [
-    SequelizeModule.forFeature([ Orders, OrdersMedicine, Medicines]),
+    SequelizeModule.forFeature([ Orders, Basket, Medicines]),
       MedicinesModule
   ]
 })

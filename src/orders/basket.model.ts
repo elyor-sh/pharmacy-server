@@ -1,11 +1,19 @@
 import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
 import {ApiProperty} from "@nestjs/swagger";
 import {Medicines} from "../medicines/medicines.model";
-import {Orders} from "./order.model";
+import {Orders} from "./orders.model";
+
+interface BasketModelAttrs {
+    medicineId: number
+    count: number
+    price: number
+    orderId: number
+}
 
 
-@Table({tableName: 'orders_medicine'})
-export class OrdersMedicine extends Model<OrdersMedicine> {
+@Table({tableName: 'basket_medicine'})
+export class Basket extends Model<Basket, BasketModelAttrs> {
+
     @ApiProperty({example: 1, description: 'Unique identifier'})
     @Column({type: DataType.INTEGER, unique: true, autoIncrement: true, primaryKey: true})
     id: number;
@@ -15,9 +23,22 @@ export class OrdersMedicine extends Model<OrdersMedicine> {
     @Column({type: DataType.INTEGER})
     medicineId: number;
 
+    @BelongsTo(() => Medicines)
+    medicine: Medicines
+
+    @ApiProperty({example: 1, description: 'Count of medicine'})
+    @Column({type: DataType.INTEGER})
+    count: number;
+
+    @ApiProperty({example: 1, description: 'Price of basket'})
+    @Column({type: DataType.FLOAT, allowNull: false})
+    price: number;
+
     @ForeignKey(() => Orders)
-    @ApiProperty({example: 1, description: 'Id of order'})
     @Column({type: DataType.INTEGER})
     orderId: number;
+
+    @BelongsTo(() => Orders)
+    order: Orders
 
 }

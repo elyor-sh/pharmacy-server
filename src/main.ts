@@ -11,6 +11,8 @@ const start = async () => {
     const PORT = process.env.PORT || 5000;
     const app = await NestFactory.create(AppModule,  { cors: true });
 
+    app.setGlobalPrefix('/api')
+
     const config = new DocumentBuilder()
         .setTitle('Pharmacy')
         .setDescription(`Documentation for REST API`)
