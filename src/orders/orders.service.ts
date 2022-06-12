@@ -3,7 +3,7 @@ import {InjectModel} from "@nestjs/sequelize";
 import {Orders} from "./orders.model";
 import {CreateOrdersDto} from "./dto/create-orders.dto";
 import {EditOrdersDto} from "./dto/edit-orders.dto";
-import {Op} from "sequelize";
+import {Op, or} from "sequelize";
 import {MedicinesService} from "../medicines/medicines.service";
 import {getResponse} from "../utils/response-util";
 import {Basket} from "./basket.model";
@@ -106,21 +106,44 @@ export class OrdersService {
     }
 
     async update(dto: EditOrdersDto) {
+
         const order = await this.ordersRepository.findByPk(dto.id)
         if (!order) {
             return new HttpException('Kategoriya topilmadi', HttpStatus.BAD_REQUEST)
         }
 
-        const newOrderObj = {
-            ...order,
-            ...dto
+        if(!dto.baskets){
+            return order
         }
 
-        const newOrder = await this.ordersRepository.update(newOrderObj, {
-            where: {id: dto.id},
-            returning: true
+        const medicineIds = []
+
+        let basketIds = []
+
+        dto.baskets.forEach(basket => {
+            basketIds.push(basket.id)
+            medicineIds.push(basket.medicineId)
         })
-        return newOrder[1][0]
+
+        const medicines = await this.medicineService.getByQuery({
+            where: {
+                id: {
+                    [Op.and]: medicineIds
+                }
+            }
+        })
+
+        if (!medicines) {
+            throw new HttpException(`Dorilar topilmadi`, HttpStatus.BAD_REQUEST)
+        }
+
+        await this.getMultipleBaskets(basketIds)
+
+        const baskets = this.getUpdatedBasketsList(medicines, dto, order)
+
+        await order.$set('baskets', baskets)
+
+        return order
     }
 
     async delete(id: number) {
@@ -138,6 +161,28 @@ export class OrdersService {
         return {
             items: order,
             message: `Buyurtma muvaffaqqiyatli o'chirildi`
+        }
+    }
+
+    private async getMultipleBaskets (ids: number[]) {
+        try {
+
+            const baskets  = await this.basketRepository.findAll({
+                where: {
+                    id: {
+                        [Op.and]: ids
+                    }
+                }
+            })
+
+            if(!baskets){
+                throw new HttpException(`Hamma savatchalar ham topilmadi!`, HttpStatus.BAD_REQUEST)
+            }
+
+            return baskets
+
+        }catch (e) {
+            throw new Error(e)
         }
     }
 
@@ -199,4 +244,29 @@ export class OrdersService {
         return basketsArray
 
     }
+
+    private getUpdatedBasketsList(medicines: Medicines[], dto: EditOrdersDto, order: Orders) {
+
+        let basketsArray: any[] = []
+
+        medicines.forEach((medicine) => {
+            dto?.baskets.forEach(item => {
+                if (item.medicineId === medicine.id) {
+
+                    const obj = {
+                        medicineId: item.medicineId,
+                        count: item.count,
+                        price: medicine.price * item.count,
+                        orderId: order.id
+                    }
+
+                    basketsArray.push(obj)
+                }
+            })
+        })
+
+        return basketsArray
+
+    }
+
 }
