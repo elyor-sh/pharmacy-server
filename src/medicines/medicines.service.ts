@@ -106,9 +106,9 @@ export class MedicinesService {
             priceWithDiscount: dto.priceWithDiscount ? +dto.priceWithDiscount : medicine.priceWithDiscount,
             currency: dto.currency ? dto.currency : medicine.currency,
             categoryId: dto.categoryId ? dto.categoryId : medicine.categoryId,
-            image: file.name ? file.name :  medicine.image,
-            imageId: file.id ? file.id : medicine.imageId,
-            resourceType: file.resourceType ? file.resourceType : medicine.resourceType
+            image: (file && file.name) ? file.name :  medicine.image,
+            imageId: (file && file.id) ? file.id : medicine.imageId,
+            resourceType: (file && file.resourceType) ? file.resourceType : medicine.resourceType
         }
 
         const newMedicine = await this.medicineRepository.update(newMedicineObj, {
