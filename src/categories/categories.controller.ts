@@ -6,6 +6,7 @@ import {RolesGuard} from "../auth/roles.guard";
 import {CreateCategoryDto} from "./dto/create-category.dto";
 import {Categories} from "./categories.model";
 import {EditCategoryDto} from "./dto/edit.category.dto";
+import {Public} from "../auth/public.decorator";
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -26,9 +27,10 @@ export class CategoriesController {
     @ApiOperation({summary: 'Get all categories'})
     @ApiBearerAuth()
     @ApiResponse({status: 200, type: Categories})
-    @Roles('admin')
-    @UseGuards(RolesGuard)
+    // @Roles('admin')
+    // @UseGuards(RolesGuard)
     @Get()
+    @Public()
     getAll(@Query() query){
         return this.categoriesService.getAll(query)
     }
@@ -36,9 +38,10 @@ export class CategoriesController {
     @ApiOperation({summary: 'Get one category'})
     @ApiBearerAuth()
     @ApiResponse({status: 200, type: Categories})
-    @Roles('admin')
-    @UseGuards(RolesGuard)
+    // @Roles('admin')
+    // @UseGuards(RolesGuard)
     @Get('/:id')
+    @Public()
     getOne(@Param('id') id: number){
         return this.categoriesService.getOne(id)
     }

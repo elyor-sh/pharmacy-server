@@ -18,6 +18,7 @@ import {Medicines} from "./medicines.model";
 import {CreateMedicineDto} from "./dto/create-medicine.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
+import {Public} from "../auth/public.decorator";
 
 @ApiTags('Medicines')
 @Controller('medicines')
@@ -54,8 +55,9 @@ export class MedicinesController {
 
     @ApiOperation({summary: 'Get all medicines'})
     @ApiResponse({status: 200, type: Medicines})
-    @Roles('admin', 'manager')
-    @UseGuards(RolesGuard)
+    // @Roles('admin', 'manager')
+    // @UseGuards(RolesGuard)
+    @Public()
     @Get()
     getAll(@Query() query){
         return this.medicinesService.getAll(query)
@@ -63,8 +65,9 @@ export class MedicinesController {
 
     @ApiOperation({summary: 'Get one medicine'})
     @ApiResponse({status: 200, type: Medicines})
-    @Roles('admin', 'manager')
-    @UseGuards(RolesGuard)
+    // @Roles('admin', 'manager')
+    // @UseGuards(RolesGuard)
+    @Public()
     @Get('/:id')
     getOne(@Param('id') id: number){
         return this.medicinesService.getOne(id)
