@@ -5,6 +5,8 @@ import {FilesService} from "../files/files.service";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
 import {Medicines} from "./medicines.model";
 import {CategoriesService} from "../categories/categories.service";
+import {GetMedicineByCategoryIdDto} from "./dto/get-medicine-by-category-id.dto";
+import {Op} from "sequelize";
 
 @Injectable()
 export class MedicinesService {
@@ -24,8 +26,6 @@ export class MedicinesService {
         }
 
         const isExistCategory = await this.categoryService.getOne(+dto.categoryId)
-
-        console.log(dto, isExistCategory)
 
         if(!isExistCategory){
            throw new HttpException(`Mavjud bo'lmagan kategoriya`, HttpStatus.BAD_REQUEST)
@@ -58,12 +58,17 @@ export class MedicinesService {
             }
 
         const medicinesWithLimit = await this.medicineRepository.findAll(options)
-        const medicines = await this.medicineRepository.findAll()
+        const count = await this.getCount()
 
         return {
             items: medicinesWithLimit,
-            count: medicines.length
+            count
         }
+    }
+
+    async getCount () {
+        const medicines = await this.medicineRepository.findAll()
+        return medicines.length
     }
 
     async getOne(id: number) {
@@ -144,6 +149,23 @@ export class MedicinesService {
     async getByQuery (query: any) {
 
         return this.medicineRepository.findAll(query)
+    }
+
+    async getMedicineByCategoryId (params: GetMedicineByCategoryIdDto) {
+        const medicines = await this.medicineRepository.findAll({
+            where: {
+                categoryId: {
+                    [Op.or]: params.ids
+                }
+            }
+        })
+
+        const count = await this.getCount()
+
+        return {
+            items: medicines,
+            count
+        }
     }
 
 }
