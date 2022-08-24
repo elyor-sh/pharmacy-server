@@ -18,6 +18,8 @@ import {Medicines} from "./medicines.model";
 import {CreateMedicineDto} from "./dto/create-medicine.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
+import {Public} from "../auth/public.decorator";
+import {GetMedicineByCategoryIdDto} from "./dto/get-medicine-by-category-id.dto";
 
 @ApiTags('Medicines')
 @Controller('medicines')
@@ -54,8 +56,7 @@ export class MedicinesController {
 
     @ApiOperation({summary: 'Get all medicines'})
     @ApiResponse({status: 200, type: Medicines})
-    @Roles('admin', 'manager')
-    @UseGuards(RolesGuard)
+    @Public()
     @Get()
     getAll(@Query() query){
         return this.medicinesService.getAll(query)
@@ -63,8 +64,7 @@ export class MedicinesController {
 
     @ApiOperation({summary: 'Get one medicine'})
     @ApiResponse({status: 200, type: Medicines})
-    @Roles('admin', 'manager')
-    @UseGuards(RolesGuard)
+    @Public()
     @Get('/:id')
     getOne(@Param('id') id: number){
         return this.medicinesService.getOne(id)
@@ -77,6 +77,20 @@ export class MedicinesController {
     @Delete('/delete/:id')
     delete(@Param('id') id: number){
         return this.medicinesService.delete(id)
+    }
+
+    @ApiOperation({summary: 'Get medicines by categories id'})
+    @ApiResponse({status: 200, type: Medicines})
+    @Public()
+    @Post('/byCategoryIds')
+    getByCategoryIds(@Body() dto: GetMedicineByCategoryIdDto){
+        try {
+            console.log('dto', dto)
+            return this.medicinesService.getMedicineByCategoryId(dto)
+
+        }catch (e) {
+            throw new HttpException(e, e.status || HttpStatus.BAD_REQUEST)
+        }
     }
 
 }

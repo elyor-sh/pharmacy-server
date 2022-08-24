@@ -1,5 +1,5 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {IsEmail, IsNumber, IsPhoneNumber, IsString} from "class-validator";
+import { IsNumber} from "class-validator";
 
 type Status  = 'active' | 'canceled' | 'done' | 'frozen'
 

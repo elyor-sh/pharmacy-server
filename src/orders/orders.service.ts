@@ -1,9 +1,9 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/sequelize";
+import {Op} from "sequelize";
 import {Orders} from "./orders.model";
 import {CreateOrdersDto} from "./dto/create-orders.dto";
 import {EditOrdersDto} from "./dto/edit-orders.dto";
-import {Op, or} from "sequelize";
 import {MedicinesService} from "../medicines/medicines.service";
 import {getResponse} from "../utils/response-util";
 import {Basket} from "./basket.model";
@@ -63,7 +63,7 @@ export class OrdersService {
 
         } catch (e) {
             console.log('error', e)
-            throw new Error(e)
+            throw new HttpException(e.message, HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -192,7 +192,7 @@ export class OrdersService {
             medicines.forEach(item => {
                dto.forEach(d => {
 
-                   if(item.totalCount - d.count < 1){
+                   if(item.totalCount - d.count < 0){
                        throw new HttpException(`Dostavkalardagi ko'rsatilgan dorilar soni tovar sonidan ko'p`, HttpStatus.BAD_REQUEST)
                    };
 
