@@ -1,8 +1,16 @@
-import {CanActivate, ExecutionContext, Injectable, UnauthorizedException} from "@nestjs/common";
+import {
+    CanActivate,
+    ExecutionContext,
+    HttpException,
+    HttpStatus,
+    Injectable,
+    UnauthorizedException
+} from "@nestjs/common";
 import {Observable} from "rxjs";
 import {JwtService} from "@nestjs/jwt";
 import {Reflector} from "@nestjs/core";
 import {ROLES_KEY} from "./roles-auth.decorator";
+import {ErrorMessages} from "../utils/error-messages";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -24,7 +32,7 @@ export class RolesGuard implements CanActivate {
             const authHeader = req.headers.authorization
 
             if(!authHeader){
-                throw new UnauthorizedException({message: 'Foydalanuvchi saytda login qilmagan'})
+                throw new UnauthorizedException({response: {message: ErrorMessages[2003], code: 2003}})
             }
 
             const bearer = authHeader.split(' ')[0]
@@ -33,7 +41,7 @@ export class RolesGuard implements CanActivate {
             //console.log(authHeader)
 
             if(bearer !== 'Bearer' || !token){
-                throw new UnauthorizedException({message: 'Foydalanuvchi saytda login qilmagan'})
+                throw new UnauthorizedException({response: {message: ErrorMessages[2003], code: 2003}})
             }
 
             const user = this.jwtService.verify(token, {
@@ -45,13 +53,13 @@ export class RolesGuard implements CanActivate {
             const hasRight =  requiredRoles.includes(user.roles.value)
 
             if(!hasRight){
-                throw new UnauthorizedException({message: `Yetarlicha huquq yo'q`})
+                throw new HttpException({response: {message: ErrorMessages[2004], code: 2004}}, HttpStatus.FORBIDDEN)
             }
 
             return true
 
         }catch (e) {
-            throw new UnauthorizedException({message: `Yetarlicha huquq yo'q`})
+            throw new HttpException({response: {message: ErrorMessages[2004], code: 2004}}, HttpStatus.FORBIDDEN)
         }
     }
 }

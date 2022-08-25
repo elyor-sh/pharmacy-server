@@ -1,8 +1,11 @@
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { Injectable} from '@nestjs/common';
 import {CreateCategoryDto} from "./dto/create-category.dto";
 import {InjectModel} from "@nestjs/sequelize";
 import {Categories} from "./categories.model";
 import {EditCategoryDto} from "./dto/edit.category.dto";
+import {ThrowException} from "../utils/sendException";
+import {paginationQuery} from "../utils/pagination";
+import {normalizeResponse} from "../utils/response-util";
 
 @Injectable()
 export class CategoriesService {
@@ -13,50 +16,45 @@ export class CategoriesService {
     async create(categoryDto: CreateCategoryDto) {
         const isExist = await this.categoriesRepository.findOne({where: {name: categoryDto.name}})
         if (isExist) {
-            return new HttpException('Bunaqa nomli kategoriya allaqachon bor', HttpStatus.BAD_REQUEST)
+            return ThrowException(4002)
         }
 
-        return this.categoriesRepository.create(categoryDto)
+        const category = await this.categoriesRepository.create(categoryDto)
+
+        return normalizeResponse<typeof category>(category, null)
     }
 
     async getAll(query) {
 
-        const options = query.rowsPerPage
-            ?
-            {
-                limit: query.rowsPerPage,
-                offset: +query.page === 0 ? query.page : ((query.page - 1) * query.rowsPerPage),
-                subQuery: false
-            }
-            :
-            {
-                limit: 10,
-                offset: 0,
-                subQuery: false
-            }
+        const {page, rowCount, options} = paginationQuery( query.rowsPerPage, query.page)
 
         const categoriesWithLimit = await this.categoriesRepository.findAll(options)
         const categories = await this.categoriesRepository.findAll()
 
-        return {
-            items: categoriesWithLimit,
-            count: categories.length
-        }
+        return normalizeResponse<typeof categoriesWithLimit>(
+            categoriesWithLimit,
+            {
+                page,
+                rowCount,
+                totalPage: categories.length
+            }
+        )
+
     }
 
     async getOne(id: number) {
         const category = await this.categoriesRepository.findByPk(id)
         if (!category) {
-            return new HttpException('Kategoriya topilmadi', HttpStatus.BAD_REQUEST)
+            return ThrowException(4000)
         }
 
-        return category
+        return normalizeResponse<typeof category>(category, null)
     }
 
     async edit(dto: EditCategoryDto) {
         const category = await this.categoriesRepository.findByPk(dto.id)
         if (!category) {
-            return new HttpException('Kategoriya topilmadi', HttpStatus.BAD_REQUEST)
+            return ThrowException(4000)
         }
 
         const newCategoryObj = {
@@ -68,10 +66,11 @@ export class CategoriesService {
             where: {id: dto.id},
             returning: true
         })
-        return newCategory[1][0]
+        return normalizeResponse<typeof newCategory[1][0]>(newCategory[1][0], null)
     }
 
     async delete(id: number) {
-        return this.categoriesRepository.destroy({where: {id: id}})
+        const res = await this.categoriesRepository.destroy({where: {id: id}})
+        return normalizeResponse<typeof res>(res, null)
     }
 }

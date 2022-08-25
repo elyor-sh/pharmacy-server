@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/sequelize";
 import {CreateMedicineDto} from "./dto/create-medicine.dto";
 import {FilesService} from "../files/files.service";
@@ -7,6 +7,10 @@ import {Medicines} from "./medicines.model";
 import {CategoriesService} from "../categories/categories.service";
 import {GetMedicineByCategoryIdDto} from "./dto/get-medicine-by-category-id.dto";
 import {Op} from "sequelize";
+import {normalizeResponse} from "../utils/response-util";
+import {paginationQuery} from "../utils/pagination";
+import {defaultPaginationQuery} from "../utils/defaultPaginationQuery";
+import {ThrowException} from "../utils/sendException";
 
 @Injectable()
 export class MedicinesService {
@@ -22,48 +26,40 @@ export class MedicinesService {
         const isExist = await this.medicineRepository.findOne({where: {name: dto.name}})
 
         if(isExist){
-            throw new HttpException(`Bunaqa nomli dori allaqachon bor!`, HttpStatus.BAD_REQUEST)
+            return ThrowException(5002)
         }
 
         const isExistCategory = await this.categoryService.getOne(+dto.categoryId)
 
         if(!isExistCategory){
-           throw new HttpException(`Mavjud bo'lmagan kategoriya`, HttpStatus.BAD_REQUEST)
+            return ThrowException(4000)
         }
 
         const file = await this.filesService.createFile(image)
 
         const medicine = await this.medicineRepository.create({...dto, image: file.uri, imageId: file.id, resourceType: file.resourceType})
 
-        return {
-            items: medicine,
-            message: `Dori muvaffaqqiyatli qo'shildi!`
-        }
+        return normalizeResponse<typeof medicine>(medicine, null)
+
     }
 
     async getAll(query) {
 
-        const options = query.rowsPerPage
-            ?
-            {
-                limit: query.rowsPerPage,
-                offset: +query.page === 0 ? query.page : ((query.page - 1) * query.rowsPerPage),
-                subQuery: false
-            }
-            :
-            {
-                limit: 10,
-                offset: 0,
-                subQuery: false
-            }
+        const {page, rowCount, options} = paginationQuery(query.rowsPerPage, query.page)
+
 
         const medicinesWithLimit = await this.medicineRepository.findAll(options)
         const count = await this.getCount()
 
-        return {
-            items: medicinesWithLimit,
-            count
-        }
+        return normalizeResponse<typeof medicinesWithLimit>(
+            medicinesWithLimit,
+            {
+                page,
+                rowCount,
+                totalPage: count
+            }
+        )
+
     }
 
     async getCount () {
@@ -74,24 +70,22 @@ export class MedicinesService {
     async getOne(id: number) {
         const medicine = await this.medicineRepository.findByPk(id)
         if (!medicine) {
-            return new HttpException('Ushbu id ga ega dori topilmadi!', HttpStatus.BAD_REQUEST)
+            return ThrowException(5000)
         }
 
-        return {
-            items: medicine,
-            message: `Successfully!`
-        }
+        return normalizeResponse<typeof medicine>(medicine, null)
+
     }
 
     async update(dto: EditMedicineDto, image) {
         const medicine = await this.medicineRepository.findByPk(dto.id)
 
         if(!dto.id){
-            return new HttpException(`id jo'natilmagan!`, HttpStatus.BAD_REQUEST)
+            return ThrowException(1010)
         }
 
         if (!medicine) {
-            return new HttpException('Ushbu id ga ega dori topilmadi!', HttpStatus.BAD_REQUEST)
+            return ThrowException(5000)
         }
 
         let file: any
@@ -121,10 +115,7 @@ export class MedicinesService {
             returning: true
         })
 
-        return {
-            items: newMedicine[1][0],
-            message: `Dori muvaffaqqiyatli yangilandi!`
-        }
+        return normalizeResponse<typeof newMedicine[1][0]>(newMedicine[1][0], null)
     }
 
     async delete (id: number) {
@@ -132,27 +123,28 @@ export class MedicinesService {
         const medicine = await this.medicineRepository.findByPk(id)
 
         if(!medicine){
-            return new HttpException(`Ushbu id ga ega dori topilmadi!`, HttpStatus.BAD_REQUEST)
+            return ThrowException(5000)
         }
 
         await this.filesService.delete(medicine.imageId, medicine.resourceType)
 
         await this.medicineRepository.destroy({where: {id: id}})
 
-        return {
-            items: medicine,
-            message: `Dori muvaffaqqiyatli o'chirildi!`
-        }
+        return normalizeResponse<typeof medicine>(medicine, null)
 
     }
 
-    async getByQuery (query: any) {
+    public async getByQuery (query: any) {
 
         return this.medicineRepository.findAll(query)
     }
 
-    async getMedicineByCategoryId (params: GetMedicineByCategoryIdDto) {
-        const medicines = await this.medicineRepository.findAll({
+    async getMedicineByCategoryId (params: GetMedicineByCategoryIdDto, query: any = defaultPaginationQuery) {
+
+        const {page, rowCount, options} = paginationQuery(query.rowsPerPage, query.page)
+
+        const medicinesWithLimit = await this.medicineRepository.findAll({
+            ...options,
             where: {
                 categoryId: {
                     [Op.or]: params.ids
@@ -160,12 +152,22 @@ export class MedicinesService {
             }
         })
 
-        const count = await this.getCount()
+        const medicinesInCategory =  await this.medicineRepository.findAll({
+            where: {
+                categoryId: {
+                    [Op.or]: params.ids
+                }
+            }
+        })
 
-        return {
-            items: medicines,
-            count
-        }
+        return normalizeResponse<typeof medicinesWithLimit>(
+            medicinesWithLimit,
+            {
+                page,
+                rowCount,
+                totalPage: medicinesInCategory.length
+            }
+        )
     }
 
 }

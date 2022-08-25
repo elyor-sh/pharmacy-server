@@ -1,13 +1,19 @@
 
-interface IPaging {
-    count: number | null
-}
+type IPaging = {
+    page: number
+    totalPage: number
+    rowCount: number
+} | null
 
 
-export const getResponse = (response: any, message: any, paging: IPaging) => {
+export function normalizeResponse<T>(
+    response: T,
+    paging: IPaging,
+    message: any = 'success',
+) {
     return {
         items: response,
-        message: message,
-        paging: paging
+        message,
+        paging
     }
 }

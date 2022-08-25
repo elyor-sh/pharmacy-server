@@ -79,18 +79,14 @@ export class MedicinesController {
         return this.medicinesService.delete(id)
     }
 
+
+
     @ApiOperation({summary: 'Get medicines by categories id'})
     @ApiResponse({status: 200, type: Medicines})
     @Public()
     @Post('/byCategoryIds')
-    getByCategoryIds(@Body() dto: GetMedicineByCategoryIdDto){
-        try {
-            console.log('dto', dto)
-            return this.medicinesService.getMedicineByCategoryId(dto)
-
-        }catch (e) {
-            throw new HttpException(e, e.status || HttpStatus.BAD_REQUEST)
-        }
+    getByCategoryIds(@Body() dto: GetMedicineByCategoryIdDto, @Query() query){
+        return this.medicinesService.getMedicineByCategoryId(dto, query)
     }
 
 }

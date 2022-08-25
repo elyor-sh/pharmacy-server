@@ -4,6 +4,9 @@ import {User} from "./users.model";
 import {CreateUserDto} from "./dto/create-user.dto";
 import {RolesService} from "../roles/roles.service";
 import {AddRoleDto} from "./dto/add-role.dto";
+import {BaseGetQuery} from "../utils/types";
+import {paginationQuery} from "../utils/pagination";
+import {normalizeResponse} from "../utils/response-util";
 
 @Injectable()
 export class UsersService {
@@ -18,15 +21,33 @@ export class UsersService {
         const role = await this.rolesService.getRoleByValue('user')
         await  user.$set('roles', role?.id ?role?.id  : null)
         user.roles = role
-        return user
+        return normalizeResponse<typeof user>(user, null)
     }
 
-    async getAllUsers() {
+    async getAllUsers(query: BaseGetQuery) {
+
+        const {page, rowCount, options} = paginationQuery(query.rowsPerPage, query.page)
+
         const users = await this.userRepository.findAll({include: {all: true}})
-        return this.deleteUsersPass(users)
+        const usersWithLimit = await this.userRepository.findAll(
+            {
+                include: {all: true},
+                ...options
+            },
+        )
+        const response = this.deleteUsersPass(usersWithLimit)
+
+        return normalizeResponse<typeof response>(
+            response,
+            {
+                page,
+                rowCount,
+                totalPage: users.length
+            }
+        )
     }
 
-    async getUserByEmail (email: string){
+    public async getUserByEmail (email: string){
         const user = await this.userRepository.findOne({where: {email}, include: {all: true}})
         return user
     }

@@ -1,8 +1,9 @@
-import {BadRequestException, HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import * as uuid from 'uuid'
 import * as path from 'path'
 import * as fs from 'fs'
 import {CloudinaryService} from "../cloudinary/cloudinary.service";
+import {ThrowException} from "../utils/sendException";
 
 interface CloudinaryRes {
     uri: string
@@ -31,7 +32,7 @@ export class FilesService {
             }
 
             if(file.size > 30 * 1000000){
-                throw new BadRequestException('Размер файла должен быть меньше 30 мб');
+                return ThrowException( 7000)
             }
 
             if(!fs.existsSync(this.filepath)){
@@ -46,7 +47,7 @@ export class FilesService {
 
             await fs.writeFile(this.totalFilePath, file.buffer, (err => {
                 if(err) {
-                    throw new HttpException(`Проблема в записи файла в диск`, HttpStatus.INTERNAL_SERVER_ERROR)
+                    return ThrowException(7001,  HttpStatus.INTERNAL_SERVER_ERROR)
                 }
             }))
 

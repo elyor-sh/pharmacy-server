@@ -4,6 +4,7 @@ import {UsersService} from "../users/users.service";
 import {JwtService} from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs"
 import {User} from "../users/users.model";
+import {ThrowException} from "../utils/sendException";
 
 @Injectable()
 export class AuthService {
@@ -14,13 +15,13 @@ export class AuthService {
         const candidate = await this.usersService.getUserByEmail(userDto.email)
 
         if(candidate){
-            throw new HttpException('A user with this email already exists', HttpStatus.BAD_REQUEST)
+            return ThrowException(2000)
         }
 
         const hashPassword = await bcrypt.hash(userDto.password, 7)
 
         const user = await this.usersService.createUser({...userDto, password: hashPassword})
-        return this.generateToken(user)
+        return this.generateToken(user.items)
     }
 
     async login(userDto: CreateUserDto): Promise<any> {
@@ -54,7 +55,7 @@ export class AuthService {
             }
         }
 
-        throw new HttpException('Wrong email or password', HttpStatus.BAD_REQUEST)
+        return ThrowException(2001)
     }
 
 }

@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, UseGuards, UsePipes} from '@nestjs/common';
+import {Body, Controller, Get, Post, Query, UseGuards, UsePipes} from '@nestjs/common';
 import {CreateUserDto} from "./dto/create-user.dto";
 import {UsersService} from "./users.service";
 import {ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
@@ -6,6 +6,7 @@ import {User} from "./users.model";
 import {Roles} from "../auth/roles-auth.decorator";
 import {RolesGuard} from "../auth/roles.guard";
 import {ValidationPipe} from "../pipes/validation.pipe";
+import {BaseGetQuery} from "../utils/types";
 
 @ApiTags('Users')
 @Controller('users')
@@ -28,8 +29,8 @@ export class UsersController {
     @Roles('admin')
     @UseGuards(RolesGuard)
     @Get()
-    getAllUsers () {
-        return this.usersService.getAllUsers()
+    getAllUsers (@Query() query: BaseGetQuery) {
+        return this.usersService.getAllUsers(query)
     }
 
 }

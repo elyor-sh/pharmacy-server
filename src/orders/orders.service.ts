@@ -1,13 +1,15 @@
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { HttpStatus, Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/sequelize";
 import {Op} from "sequelize";
 import {Orders} from "./orders.model";
 import {CreateOrdersDto} from "./dto/create-orders.dto";
 import {EditOrdersDto} from "./dto/edit-orders.dto";
 import {MedicinesService} from "../medicines/medicines.service";
-import {getResponse} from "../utils/response-util";
 import {Basket} from "./basket.model";
 import {Medicines} from "../medicines/medicines.model";
+import {normalizeResponse} from "../utils/response-util";
+import {paginationQuery} from "../utils/pagination";
+import {ThrowException} from "../utils/sendException";
 
 @Injectable()
 export class OrdersService {
@@ -34,7 +36,7 @@ export class OrdersService {
             })
 
             if (!medicines) {
-                throw new HttpException(`Dorilar topilmadi`, HttpStatus.BAD_REQUEST)
+                return ThrowException(5001)
             }
 
             await this.updateMedicinesCount(medicines, dto)
@@ -59,60 +61,52 @@ export class OrdersService {
 
             order.baskets = baskets
 
-            return getResponse({order, baskets}, 'success', null)
+            const response = {
+                order, baskets
+            }
+
+            return normalizeResponse<typeof response>(response, null)
 
         } catch (e) {
             console.log('error', e)
-            throw new HttpException(e.message, HttpStatus.BAD_REQUEST)
         }
     }
 
     async getAll(query) {
-        const options = query.rowsPerPage
-            ?
-            {
-                limit: query.rowsPerPage,
-                offset: +query.page === 0 ? query.page : ((query.page - 1) * query.rowsPerPage),
-                subQuery: false
-            }
-            :
-            {
-                limit: 10,
-                offset: 0,
-                subQuery: false
-            }
+
+        const {options, page, rowCount} = paginationQuery(query.rowsPerPage, query.page)
 
         const ordersWithLimit = await this.ordersRepository.findAll({include: {all: true}, ...options})
         const orders = await this.ordersRepository.findAll()
 
-        return {
-            items: ordersWithLimit,
-            count: orders.length,
-            message: 'Success'
-        }
+        return normalizeResponse<typeof ordersWithLimit>(
+            ordersWithLimit,
+            {
+                page,
+                totalPage: orders.length,
+                rowCount: rowCount
+            }
+        )
     }
 
     async getOne(id: number) {
         const order = await this.ordersRepository.findByPk(id)
 
         if (!order) {
-            throw new HttpException(`Ushbu id li buyurtma topilmadi!`, HttpStatus.BAD_REQUEST)
+            return ThrowException(3000)
         }
 
-        return {
-            items: order,
-            message: `Success`
-        }
+        return normalizeResponse<typeof order>(order, null)
     }
 
     async update(dto: EditOrdersDto) {
 
         const order = await this.ordersRepository.findByPk(dto.id)
         if (!order) {
-            return new HttpException('Kategoriya topilmadi', HttpStatus.BAD_REQUEST)
+            return ThrowException(3000)
         }
 
-        if(!dto.baskets){
+        if (!dto.baskets) {
             return order
         }
 
@@ -134,7 +128,7 @@ export class OrdersService {
         })
 
         if (!medicines) {
-            throw new HttpException(`Dorilar topilmadi`, HttpStatus.BAD_REQUEST)
+            return ThrowException(5001)
         }
 
         await this.getMultipleBaskets(basketIds)
@@ -143,7 +137,7 @@ export class OrdersService {
 
         await order.$set('baskets', baskets)
 
-        return order
+        return normalizeResponse<typeof order>(order, null)
     }
 
     async delete(id: number) {
@@ -151,23 +145,20 @@ export class OrdersService {
         const order = await this.ordersRepository.findByPk(id)
 
         if (!order) {
-            throw new HttpException(`Ushbu id li buyurtma topilmadi!`, HttpStatus.BAD_REQUEST)
+            return ThrowException(3000)
         }
 
         await this.ordersRepository.destroy({where: {id: id}})
 
         await this.basketRepository.destroy({where: {orderId: id}})
 
-        return {
-            items: order,
-            message: `Buyurtma muvaffaqqiyatli o'chirildi`
-        }
+        return normalizeResponse<typeof order>(order, null)
     }
 
-    private async getMultipleBaskets (ids: number[]) {
+    private async getMultipleBaskets(ids: number[]) {
         try {
 
-            const baskets  = await this.basketRepository.findAll({
+            const baskets = await this.basketRepository.findAll({
                 where: {
                     id: {
                         [Op.and]: ids
@@ -175,34 +166,47 @@ export class OrdersService {
                 }
             })
 
-            if(!baskets){
-                throw new HttpException(`Hamma savatchalar ham topilmadi!`, HttpStatus.BAD_REQUEST)
+            if (!baskets) {
+                return ThrowException(6001)
             }
 
             return baskets
 
-        }catch (e) {
+        } catch (e) {
             throw new Error(e)
         }
     }
 
-    private async updateMedicinesCount (medicines: Medicines[], dto: CreateOrdersDto[]) {
+    private async updateMedicinesCount(medicines: Medicines[], dto: CreateOrdersDto[]) {
         try {
 
+            let error = false
+
             medicines.forEach(item => {
-               dto.forEach(d => {
+                dto.forEach(d => {
 
-                   if(item.totalCount - d.count < 0){
-                       throw new HttpException(`Dostavkalardagi ko'rsatilgan dorilar soni tovar sonidan ko'p`, HttpStatus.BAD_REQUEST)
-                   };
-
-                   (async () => {
-                       await this.medicineService.update({id: item.id, totalCount: item.totalCount - d.count}, null)
-                   })();
-               })
+                    if (item.totalCount - d.count < 0) {
+                        error = true
+                        return ThrowException(3002)
+                    }
+                })
             })
 
-        }catch (e) {
+            if(error){
+                return ThrowException(3002)
+            }
+
+            medicines.forEach(item => {
+                dto.forEach(d => {
+
+                    (async () => {
+                        await this.medicineService.update({id: item.id, totalCount: item.totalCount - d.count}, null)
+                    })();
+                })
+            })
+
+
+        } catch (e) {
             throw new Error(e)
         }
     }
