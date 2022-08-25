@@ -5,6 +5,7 @@ import {JwtAuthGuard} from "./auth/jwt-auth.guard";
 import {ValidationPipe} from "./pipes/validation.pipe";
 import {JwtService} from "@nestjs/jwt";
 import {TransformInterceptor} from "./interceptors/transform.interceptor";
+import {HttpExceptionFilter} from "./interceptors/exception.filter";
 
 
 const start = async () => {
@@ -28,6 +29,7 @@ const start = async () => {
     const reflector = app.get(Reflector);
 
       app.useGlobalInterceptors(new TransformInterceptor())
+      app.useGlobalFilters(new HttpExceptionFilter())
       app.useGlobalGuards(new JwtAuthGuard(new JwtService({}), reflector))
       app.useGlobalPipes(new ValidationPipe())
 
