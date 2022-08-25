@@ -4,6 +4,7 @@ import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {JwtAuthGuard} from "./auth/jwt-auth.guard";
 import {ValidationPipe} from "./pipes/validation.pipe";
 import {JwtService} from "@nestjs/jwt";
+import {TransformInterceptor} from "./interceptors/transform.interceptor";
 
 
 const start = async () => {
@@ -26,6 +27,7 @@ const start = async () => {
 
     const reflector = app.get(Reflector);
 
+      app.useGlobalInterceptors(new TransformInterceptor())
       app.useGlobalGuards(new JwtAuthGuard(new JwtService({}), reflector))
       app.useGlobalPipes(new ValidationPipe())
 
