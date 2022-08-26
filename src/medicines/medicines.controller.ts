@@ -9,14 +9,14 @@ import {
     UseInterceptors,
     UsePipes
 } from '@nestjs/common';
-import {MedicinesService} from "./medicines.service";
 import {ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {FileInterceptor} from "@nestjs/platform-express";
+import {MedicinesService} from "./medicines.service";
 import {Roles} from "../auth/roles-auth.decorator";
 import {RolesGuard} from "../auth/roles.guard";
 import {ValidationPipe} from "../pipes/validation.pipe";
 import {Medicines} from "./medicines.model";
 import {CreateMedicineDto} from "./dto/create-medicine.dto";
-import {FileInterceptor} from "@nestjs/platform-express";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
 import {Public} from "../auth/public.decorator";
 import {GetMedicineByCategoryIdDto} from "./dto/get-medicine-by-category-id.dto";

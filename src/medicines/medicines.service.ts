@@ -1,12 +1,12 @@
 import { Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/sequelize";
+import {Op} from "sequelize";
 import {CreateMedicineDto} from "./dto/create-medicine.dto";
 import {FilesService} from "../files/files.service";
 import {EditMedicineDto} from "./dto/edit-medicine.dto";
 import {Medicines} from "./medicines.model";
 import {CategoriesService} from "../categories/categories.service";
 import {GetMedicineByCategoryIdDto} from "./dto/get-medicine-by-category-id.dto";
-import {Op} from "sequelize";
 import {normalizeResponse} from "../utils/response-util";
 import {paginationQuery} from "../utils/pagination";
 import {defaultPaginationQuery} from "../utils/defaultPaginationQuery";

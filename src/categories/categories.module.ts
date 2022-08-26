@@ -4,12 +4,13 @@ import { CategoriesService } from './categories.service';
 import {SequelizeModule} from "@nestjs/sequelize";
 import {Categories} from "./categories.model";
 import {AuthModule} from "../auth/auth.module";
+import {CategoriesStatistics} from "./categories-statistics.model";
 
 @Module({
   controllers: [CategoriesController],
   providers: [CategoriesService],
   imports: [
-    SequelizeModule.forFeature([Categories]),
+    SequelizeModule.forFeature([Categories, CategoriesStatistics]),
     forwardRef(() =>  AuthModule),
   ]
 })

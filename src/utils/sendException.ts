@@ -12,3 +12,5 @@ export const ThrowException = (code: ICode, status: number = HttpStatus.BAD_REQU
         status
     )
 }
+
+
