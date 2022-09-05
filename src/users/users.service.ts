@@ -28,21 +28,20 @@ export class UsersService {
 
         const {page, rowCount, options} = paginationQuery(query.rowsPerPage, query.page)
 
-        const users = await this.userRepository.findAll({include: {all: true}})
-        const usersWithLimit = await this.userRepository.findAll(
+        const {rows: users, count} = await this.userRepository.findAndCountAll(
             {
                 include: {all: true},
                 ...options
             },
         )
-        const response = this.deleteUsersPass(usersWithLimit)
+        const response = this.deleteUsersPass(users)
 
         return normalizeResponse<typeof response>(
             response,
             {
                 page,
                 rowCount,
-                totalPage: users.length
+                totalPage: Math.floor(count / rowCount)
             }
         )
     }

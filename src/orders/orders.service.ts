@@ -76,15 +76,14 @@ export class OrdersService {
 
         const {options, page, rowCount} = paginationQuery(query.rowsPerPage, query.page)
 
-        const ordersWithLimit = await this.ordersRepository.findAll({include: {all: true}, ...options})
-        const orders = await this.ordersRepository.findAll()
+        const {rows: orders, count} = await this.ordersRepository.findAndCountAll({include: {all: true}, ...options})
 
-        return normalizeResponse<typeof ordersWithLimit>(
-            ordersWithLimit,
+        return normalizeResponse<typeof orders>(
+            orders,
             {
                 page,
-                totalPage: orders.length,
-                rowCount: rowCount
+                rowCount,
+                totalPage: Math.floor(count / rowCount),
             }
         )
     }

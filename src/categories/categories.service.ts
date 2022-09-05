@@ -6,14 +6,14 @@ import {EditCategoryDto} from "./dto/edit.category.dto";
 import {ThrowException} from "../utils/sendException";
 import {paginationQuery} from "../utils/pagination";
 import {NormalizeResponse, normalizeResponse} from "../utils/response-util";
-import {CategoriesStatistics} from "./categories-statistics.model";
+import {StatisticsService} from "../statistics/statistics.service";
 
 @Injectable()
 export class CategoriesService {
 
     constructor(
         @InjectModel(Categories) private categoriesRepository: typeof Categories,
-        @InjectModel(CategoriesStatistics) private categoriesStatisticsRepository: typeof CategoriesStatistics
+        private readonly statisticsService: StatisticsService
     ) {}
 
     async create(categoryDto: CreateCategoryDto): Promise<NormalizeResponse<Categories>> {
@@ -32,15 +32,14 @@ export class CategoriesService {
 
         const {page, rowCount, options} = paginationQuery( query.rowsPerPage, query.page)
 
-        const categoriesWithLimit = await this.categoriesRepository.findAll(options)
-        const categories = await this.categoriesRepository.findAll()
+        const {rows: categories, count} = await this.categoriesRepository.findAndCountAll(options)
 
-        return normalizeResponse<typeof categoriesWithLimit>(
-            categoriesWithLimit,
+        return normalizeResponse<typeof categories>(
+            categories,
             {
                 page,
                 rowCount,
-                totalPage: categories.length
+                totalPage: Math.floor(count / rowCount)
             }
         )
 
@@ -54,25 +53,7 @@ export class CategoriesService {
                 return ThrowException(4000)
             }
 
-            const categoryStatistic = await this.getCategoryStatistic(id);
-
-            if(!categoryStatistic){
-                await this.categoriesStatisticsRepository.create({
-                    categoryId: id,
-                    statisticCount: 1
-                })
-            }else{
-                await this.categoriesStatisticsRepository.update(
-                    {
-                        id: categoryStatistic.id,
-                        categoryId: id,
-                        statisticCount: categoryStatistic.statisticCount + 1
-                    },
-                    {
-                        where: {id: categoryStatistic.id},
-                    }
-                )
-            }
+           await this.statisticsService.createCategoryStatistics(id)
 
             return normalizeResponse<typeof category>(category, null)
 
@@ -102,14 +83,5 @@ export class CategoriesService {
     async delete(id: number) {
         const res = await this.categoriesRepository.destroy({where: {id: id}})
         return normalizeResponse<typeof res>(res, null)
-    }
-
-    private async getCategoryStatistic (categoryId: number): Promise<CategoriesStatistics | null> {
-        const statistic = await this.categoriesStatisticsRepository.findOne({where: {categoryId}})
-        if (!statistic) {
-            return null
-        }
-
-        return statistic
     }
 }

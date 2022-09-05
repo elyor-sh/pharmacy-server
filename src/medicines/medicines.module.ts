@@ -11,12 +11,14 @@ import {Orders} from "../orders/orders.model";
 import {Basket} from "../orders/basket.model";
 import {CategoriesService} from "../categories/categories.service";
 import {CategoriesStatistics} from "../categories/categories-statistics.model";
+import {StatisticsService} from "../statistics/statistics.service";
+import {MedicinesStatistics} from "./medicines-statistic.model";
 
 @Module({
   controllers: [MedicinesController],
-  providers: [MedicinesService, CategoriesService],
+  providers: [MedicinesService, CategoriesService,   StatisticsService],
   imports: [
-    SequelizeModule.forFeature([Categories, Medicines, Orders, Basket, CategoriesStatistics]),
+    SequelizeModule.forFeature([Categories, Medicines, Orders, Basket, CategoriesStatistics, MedicinesStatistics]),
     RolesModule,
     forwardRef(() =>  AuthModule),
       FilesModule

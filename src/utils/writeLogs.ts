@@ -18,15 +18,8 @@ export const writeLogs = (req: Request, success = true) => {
         success
     }
 
-    let logs = []
 
-    if(fs.existsSync('logs.json')){
-        logs = JSON.parse(fs.readFileSync("logs.json", "utf8") || '[]')
-    }
-
-    logs.push(obj)
-
-    fs.writeFile("logs.json", JSON.stringify(logs, null, 2), function(error){
-        if(error) return  error; // если возникла ошибка
-    });
+        fs.appendFile("logs.txt", `${JSON.stringify(obj, null, 2)},`, function(error){
+            if(error) return  error; // если возникла ошибка
+        });
 }

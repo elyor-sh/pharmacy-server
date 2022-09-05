@@ -15,6 +15,7 @@ import { OrdersModule } from './orders/orders.module';
 import {Basket} from "./orders/basket.model";
 import {Orders} from "./orders/orders.model";
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 
 @Module({
@@ -47,6 +48,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
         FilesModule,
         OrdersModule,
         CloudinaryModule,
+        StatisticsModule,
     ]
 })
 export class AppModule {

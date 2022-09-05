@@ -42,5 +42,5 @@ export const ErrorMessages = {
     // ======== ROLES ========
     9000: 'Role not found',
     9001: 'Roles not found',
-    9002: 'The role already exists'
+    9002: 'The role already exists',
 }

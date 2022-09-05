@@ -11,6 +11,7 @@ import {normalizeResponse} from "../utils/response-util";
 import {paginationQuery} from "../utils/pagination";
 import {defaultPaginationQuery} from "../utils/defaultPaginationQuery";
 import {ThrowException} from "../utils/sendException";
+import {StatisticsService} from "../statistics/statistics.service";
 
 @Injectable()
 export class MedicinesService {
@@ -18,7 +19,8 @@ export class MedicinesService {
     constructor(
         @InjectModel(Medicines) private medicineRepository: typeof Medicines,
         private categoryService: CategoriesService,
-        private filesService: FilesService
+        private filesService: FilesService,
+        private statisticsService: StatisticsService
     ) {}
 
     async create (dto: CreateMedicineDto, image:any) {
@@ -48,23 +50,17 @@ export class MedicinesService {
         const {page, rowCount, options} = paginationQuery(query.rowsPerPage, query.page)
 
 
-        const medicinesWithLimit = await this.medicineRepository.findAll(options)
-        const count = await this.getCount()
+        const {rows: medicines, count} = await this.medicineRepository.findAndCountAll(options)
 
-        return normalizeResponse<typeof medicinesWithLimit>(
-            medicinesWithLimit,
+        return normalizeResponse<typeof medicines>(
+            medicines,
             {
                 page,
                 rowCount,
-                totalPage: count
+                totalPage: Math.ceil(count / rowCount)
             }
         )
 
-    }
-
-    async getCount () {
-        const medicines = await this.medicineRepository.findAll()
-        return medicines.length
     }
 
     async getOne(id: number) {
@@ -72,6 +68,8 @@ export class MedicinesService {
         if (!medicine) {
             return ThrowException(5000)
         }
+
+        await this.statisticsService.createMedicineStatistics(id)
 
         return normalizeResponse<typeof medicine>(medicine, null)
 
